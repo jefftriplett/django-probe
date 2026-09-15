@@ -1,0 +1,32 @@
+<div class="table-wrap">
+  <table class="table">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        {% if show_organization %}<th scope="col">Organization</th>{% endif %}
+        <th scope="col">Latest submission</th>
+        <th scope="col">Submissions</th>
+        <th scope="col"><span class="visually-hidden">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for project in projects %}
+        <tr>
+          <td><a href="{% url 'project-detail' organization_id=project.organization_id project_id=project.pk %}">{{ project.name }}</a></td>
+          {% if show_organization %}
+            <td><a href="{% url 'organization-detail' organization_id=project.organization_id %}">{{ project.organization.name }}</a></td>
+          {% endif %}
+          <td class="table__meta">
+            {% if project.latest_submission_id %}
+              <a href="{% url 'submission-detail' submission_id=project.latest_submission_id %}">{{ project.latest_submission_at|date:"SHORT_DATETIME_FORMAT" }}</a>
+            {% else %}
+              No submissions yet
+            {% endif %}
+          </td>
+          <td><a href="{% url 'project-submissions' organization_id=project.organization_id project_id=project.pk %}">View all</a></td>
+          <td class="table__actions"><a class="heading-action" href="{% url 'project-edit' organization_id=project.organization_id project_id=project.pk %}">(rename)</a></td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

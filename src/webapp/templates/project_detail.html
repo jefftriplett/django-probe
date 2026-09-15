@@ -72,14 +72,7 @@ jobs:
 <code>DJANGO_PROBE_TOKEN</code> and run <code>uv run django-probe submit .</code>.</p>
 
 <h2>Submissions</h2>
-{% if submissions %}
-  {% include "includes/submission_list.html" %}
-{% else %}
-  <div class="panel">
-    <p><strong>No submissions for this project yet.</strong></p>
-    <p>Use the token above to attach the next submission.</p>
-  </div>
-{% endif %}
+{% include "includes/paginated_submissions.html" %}
 
 {% if can_delete %}
   <p><a class="button button--secondary" href="{% url 'project-delete' organization_id=organization.pk project_id=project.pk %}">Delete project</a></p>

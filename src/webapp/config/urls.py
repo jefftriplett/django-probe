@@ -89,6 +89,11 @@ urlpatterns = [
         name="project-edit",
     ),
     path(
+        "organizations/<uuid:organization_id>/projects/<int:project_id>/submissions/",
+        views.project_submissions,
+        name="project-submissions",
+    ),
+    path(
         "organizations/<uuid:organization_id>/projects/<int:project_id>/regenerate-token/",
         views.project_token_regenerate,
         name="project-token-regenerate",

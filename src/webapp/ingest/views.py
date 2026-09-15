@@ -9,8 +9,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth import get_user_model, logout
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Prefetch
+from django.db.models import Count, OuterRef, Subquery
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -70,6 +71,24 @@ def _membership_or_404(request, organization_id: uuid.UUID) -> OrganizationMembe
         OrganizationMembership.objects.select_related("organization"),
         organization_id=organization_id,
         user=request.user,
+    )
+
+
+def _paginate_submissions(request, project: Project):
+    paginator = Paginator(project.submissions.all(), 25)
+    return paginator.get_page(request.GET.get("page"))
+
+
+def _with_latest_submission(projects):
+    """Annotate a project queryset with its most recent submission, if any.
+
+    A subquery rather than a prefetch: the tables that render this only need the
+    one latest row per project, not every submission pulled into memory.
+    """
+    latest = Submission.objects.filter(project=OuterRef("pk")).order_by("-created_at")
+    return projects.annotate(
+        latest_submission_id=Subquery(latest.values("id")[:1]),
+        latest_submission_at=Subquery(latest.values("created_at")[:1]),
     )
 
 
@@ -310,16 +329,15 @@ def style_guide(request) -> HttpResponse:
 
 @login_required
 def account(request) -> HttpResponse:
-    memberships = request.user.organization_memberships.select_related("organization")
-    projects = (
-        Project.objects.filter(organization__members=request.user)
-        .select_related("organization")
-        .prefetch_related(
-            Prefetch(
-                "submissions",
-                queryset=Submission.objects.order_by("-created_at"),
-                to_attr="account_submissions",
-            )
+    memberships = request.user.organization_memberships.select_related(
+        "organization"
+    ).annotate(
+        project_count=Count("organization__projects", distinct=True),
+        member_count=Count("organization__memberships", distinct=True),
+    )
+    projects = _with_latest_submission(
+        Project.objects.filter(organization__members=request.user).select_related(
+            "organization"
         )
     )
     # Revoked and expired ones are listed too: someone checking whether a lost
@@ -410,10 +428,7 @@ def organization_create(request) -> HttpResponse:
 @login_required
 def organization_detail(request, organization_id: uuid.UUID) -> HttpResponse:
     membership = _membership_or_404(request, organization_id)
-    projects = membership.organization.projects.all()
-    submissions = Submission.objects.filter(
-        project__organization=membership.organization
-    ).select_related("project")[:10]
+    projects = _with_latest_submission(membership.organization.projects.all())
     return render(
         request,
         "organization_detail.html",
@@ -421,7 +436,6 @@ def organization_detail(request, organization_id: uuid.UUID) -> HttpResponse:
             "membership": membership,
             "organization": membership.organization,
             "projects": projects,
-            "recent_submissions": submissions,
             "is_sole_member": membership.organization.memberships.count() == 1,
         },
     )
@@ -562,9 +576,31 @@ def project_detail(
             "membership": membership,
             "organization": membership.organization,
             "project": project,
-            "submissions": project.submissions.all(),
+            "page_obj": _paginate_submissions(request, project),
             "can_delete": membership.organization.memberships.count() == 1,
             "member_count": membership.organization.memberships.count(),
+        },
+    )
+
+
+@login_required
+def project_submissions(
+    request, organization_id: uuid.UUID, project_id: int
+) -> HttpResponse:
+    membership = _membership_or_404(request, organization_id)
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+        organization=membership.organization,
+    )
+    return render(
+        request,
+        "project_submissions.html",
+        {
+            "membership": membership,
+            "organization": membership.organization,
+            "project": project,
+            "page_obj": _paginate_submissions(request, project),
         },
     )
 

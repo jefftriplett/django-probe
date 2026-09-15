@@ -76,7 +76,7 @@ class AccountTests(TestCase):
 
         projects = list(response.context["projects"])
         self.assertEqual(projects, [own_project])
-        self.assertEqual(projects[0].account_submissions, [own_submission])
+        self.assertEqual(projects[0].latest_submission_id, own_submission.pk)
         self.assertContains(response, own_project.name)
         self.assertContains(response, own_organization.name)
         self.assertNotContains(response, other_project.name)
@@ -89,7 +89,7 @@ class AccountTests(TestCase):
         response = self.client.get(reverse("account"))
 
         self.assertContains(response, project.name)
-        self.assertContains(response, "No submissions for this project yet.")
+        self.assertContains(response, "No submissions yet")
 
     def test_credential_dates_use_the_active_locale(self):
         organization = OrganizationFactory(owner=self.user)

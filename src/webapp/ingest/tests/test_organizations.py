@@ -138,12 +138,11 @@ class OrganizationAccessTests(TestCase):
         )
 
         self.assertContains(organization_response, self.project.name)
+        projects = list(organization_response.context["projects"])
+        self.assertEqual(projects, [self.project])
+        self.assertEqual(projects[0].latest_submission_id, second_submission.pk)
         self.assertEqual(
-            list(organization_response.context["recent_submissions"]),
-            [second_submission, first_submission],
-        )
-        self.assertEqual(
-            list(project_response.context["submissions"]),
+            list(project_response.context["page_obj"].object_list),
             [second_submission, first_submission],
         )
 
@@ -212,6 +211,67 @@ class OrganizationAccessTests(TestCase):
                 self.assertEqual(
                     self.client.get(reverse(name, args=args)).status_code, 404
                 )
+
+
+class ProjectSubmissionsViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.owner = UserFactory(username="owner")
+        cls.outsider = UserFactory(username="outsider")
+        cls.organization = OrganizationFactory(name="Django team", owner=cls.owner)
+        cls.project = ProjectFactory(organization=cls.organization, name="Website")
+
+    def setUp(self):
+        self.client.force_login(self.owner)
+
+    def url(self, project=None) -> str:
+        project = project or self.project
+        return reverse("project-submissions", args=[self.organization.pk, project.pk])
+
+    def test_lists_submissions_newest_first(self):
+        older = SubmissionFactory(project=self.project)
+        newer = SubmissionFactory(project=self.project)
+
+        response = self.client.get(self.url())
+
+        self.assertEqual(list(response.context["page_obj"].object_list), [newer, older])
+
+    def test_paginates_at_twenty_five_per_page(self):
+        submissions = [SubmissionFactory(project=self.project) for _ in range(30)]
+        submissions.reverse()
+
+        first_page = self.client.get(self.url())
+        second_page = self.client.get(self.url(), {"page": 2})
+
+        self.assertEqual(
+            list(first_page.context["page_obj"].object_list), submissions[:25]
+        )
+        self.assertEqual(
+            list(second_page.context["page_obj"].object_list), submissions[25:]
+        )
+
+    def test_empty_state(self):
+        response = self.client.get(self.url())
+
+        self.assertContains(response, "No submissions for this project yet.")
+
+    def test_outsider_cannot_view(self):
+        self.client.force_login(self.outsider)
+
+        response = self.client.get(self.url())
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_cross_organization_lookup(self):
+        other_organization = OrganizationFactory(name="Other team", owner=self.owner)
+
+        response = self.client.get(
+            reverse(
+                "project-submissions", args=[other_organization.pk, self.project.pk]
+            )
+        )
+
+        self.assertEqual(response.status_code, 404)
 
 
 class OrganizationManagementViewTests(TestCase):

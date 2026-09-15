@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} submissions | Django Probe{% endblock %}
+
+{% block content %}
+<header class="page-header">
+  <h1>{{ project.name }} submissions</h1>
+  <p class="lede">Organization: <a href="{% url 'organization-detail' organization_id=organization.pk %}">{{ organization.name }}</a></p>
+</header>
+
+{% include "includes/paginated_submissions.html" %}
+
+<p class="back-link"><a href="{% url 'project-detail' organization_id=organization.pk project_id=project.pk %}">&larr; Back to {{ project.name }}</a></p>
+{% endblock %}

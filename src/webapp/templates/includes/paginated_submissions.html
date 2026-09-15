@@ -1,0 +1,19 @@
+{% if page_obj.object_list %}
+  {% include "includes/submission_list.html" with submissions=page_obj.object_list %}
+  {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Submissions pages">
+      {% if page_obj.has_previous %}
+        <a class="button button--secondary" href="?page={{ page_obj.previous_page_number }}">&larr; Previous</a>
+      {% endif %}
+      <span class="pagination__status">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+      {% if page_obj.has_next %}
+        <a class="button button--secondary" href="?page={{ page_obj.next_page_number }}">Next &rarr;</a>
+      {% endif %}
+    </nav>
+  {% endif %}
+{% else %}
+  <div class="panel">
+    <p><strong>No submissions for this project yet.</strong></p>
+    <p>Use the project's token to attach the next submission.</p>
+  </div>
+{% endif %}

@@ -25,7 +25,7 @@
   --space-6: 2rem;
   --space-7: 3rem;
   --radius: 0.25rem;
-  --content-width: 48rem;
+  --content-width: 60rem;
 }
 
 *,
@@ -557,6 +557,18 @@ input[type="radio"] {
 
 .table td.table__actions {
   text-align: right;
+}
+
+.pagination {
+  align-items: center;
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.pagination__status {
+  color: var(--color-muted);
+  font-size: 0.9rem;
 }
 
 .auth-panel {

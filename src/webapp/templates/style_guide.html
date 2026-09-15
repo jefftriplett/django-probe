@@ -114,6 +114,38 @@
     <li><span class="item-list__title">August 28, 2026</span><span class="item-list__meta">Django 4.2 · Python 3.12 · 47 files scanned</span></li>
   </ul>
 
+  <h3>Data table</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Latest submission</th>
+          <th scope="col"><span class="visually-hidden">Actions</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="#content">Website</a></td>
+          <td class="table__meta">September 1, 2026</td>
+          <td class="table__actions"><a class="heading-action" href="#content">(rename)</a></td>
+        </tr>
+        <tr>
+          <td><a href="#content">Documentation</a></td>
+          <td class="table__meta">No submissions yet</td>
+          <td class="table__actions"><a class="heading-action" href="#content">(rename)</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pagination</h3>
+  <nav class="pagination" aria-label="Example pages">
+    <a class="button button--secondary" href="#content">&larr; Previous</a>
+    <span class="pagination__status">Page 2 of 5</span>
+    <a class="button button--secondary" href="#content">Next &rarr;</a>
+  </nav>
+
   <h3>Command block</h3>
   <pre><code>uv run django-probe scan .
 uv run django-probe submit .</code></pre>

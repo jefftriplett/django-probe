@@ -23,40 +23,11 @@
 
 <h2>Projects</h2>
 {% if projects %}
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr>
-          <th scope="col">Name</th>
-          <th scope="col">Created</th>
-          <th scope="col"></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for project in projects %}
-          <tr>
-            <td><a href="{% url 'project-detail' organization_id=organization.pk project_id=project.pk %}">{{ project.name }}</a></td>
-            <td class="table__meta">{{ project.created_at|date:"SHORT_DATE_FORMAT" }}</td>
-            <td class="table__actions"><a class="heading-action" href="{% url 'project-edit' organization_id=organization.pk project_id=project.pk %}">(rename)</a></td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  {% include "includes/projects_table.html" with projects=projects show_organization=False %}
 {% else %}
   <div class="panel">
     <p><strong>No projects yet.</strong></p>
     <p>Create a project and Django Probe will generate its token for you.</p>
-  </div>
-{% endif %}
-
-<h2>Recent submissions</h2>
-{% if recent_submissions %}
-  {% include "includes/submission_list.html" with submissions=recent_submissions %}
-{% else %}
-  <div class="panel">
-    <p><strong>No organization submissions yet.</strong></p>
-    <p>Submissions appear here after a CI job submits with a project's token.</p>
   </div>
 {% endif %}
 
