@@ -289,6 +289,73 @@ class OrganizationManagementViewTests(TestCase):
             Project.objects.filter(organization=self.organization).count(), 1
         )
 
+    def test_edit_project_form_suggests_a_fake_name_on_request(self):
+        """The rename form keeps the current name until a suggestion is requested."""
+        project = ProjectFactory(organization=self.organization, name="Website")
+
+        unchanged_response = self.client.get(
+            reverse("project-edit", args=[self.organization.pk, project.pk])
+        )
+        suggested_response = self.client.get(
+            reverse("project-edit", args=[self.organization.pk, project.pk]),
+            {"suggest": "1"},
+        )
+
+        self.assertEqual(unchanged_response.context["form"]["name"].value(), "Website")
+        suggested_name = suggested_response.context["form"]["name"].value()
+        self.assertNotEqual(suggested_name, "Website")
+        self.assertEqual(len(suggested_name.split(" ")), 3)
+
+    def test_rename_project(self):
+        """Owners can rename a project without affecting its token."""
+        project = ProjectFactory(organization=self.organization, name="Website")
+        original_token = project.token
+
+        response = self.client.post(
+            reverse("project-edit", args=[self.organization.pk, project.pk]),
+            {"name": "Marketing site"},
+        )
+
+        project.refresh_from_db()
+        self.assertRedirects(
+            response,
+            reverse("project-detail", args=[self.organization.pk, project.pk]),
+            fetch_redirect_response=False,
+        )
+        self.assertEqual(project.name, "Marketing site")
+        self.assertEqual(project.token, original_token)
+
+    def test_rename_project_to_its_own_name_is_allowed(self):
+        project = ProjectFactory(organization=self.organization, name="Website")
+
+        response = self.client.post(
+            reverse("project-edit", args=[self.organization.pk, project.pk]),
+            {"name": "Website"},
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("project-detail", args=[self.organization.pk, project.pk]),
+            fetch_redirect_response=False,
+        )
+
+    def test_rename_project_to_a_duplicate_name_is_rejected(self):
+        ProjectFactory(organization=self.organization, name="Website")
+        other_project = ProjectFactory(organization=self.organization, name="Docs")
+
+        response = self.client.post(
+            reverse("project-edit", args=[self.organization.pk, other_project.pk]),
+            {"name": "Website"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(
+            response,
+            "A project with this name already exists in this organization.",
+        )
+        other_project.refresh_from_db()
+        self.assertEqual(other_project.name, "Docs")
+
     def test_regenerate_token(self):
         """Owners can regenerate a project's token."""
         project = ProjectFactory(organization=self.organization, name="Website")

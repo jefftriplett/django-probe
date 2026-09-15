@@ -36,17 +36,22 @@ class OrganizationForm(forms.ModelForm):
 
 
 class ProjectForm(forms.ModelForm):
-    def __init__(self, *args, organization: Organization, **kwargs):
+    def __init__(
+        self, *args, organization: Organization, suggest_name: bool = False, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         self.organization = organization
-        if not self.is_bound and self.instance._state.adding:
+        if not self.is_bound and (self.instance._state.adding or suggest_name):
             self.initial["name"] = generate_fake_name()
 
     def clean_name(self) -> str:
         name = self.cleaned_data["name"]
-        if Project.objects.filter(
+        queryset = Project.objects.filter(
             organization=self.organization, name__iexact=name
-        ).exists():
+        )
+        if not self.instance._state.adding:
+            queryset = queryset.exclude(pk=self.instance.pk)
+        if queryset.exists():
             raise forms.ValidationError(
                 "A project with this name already exists in this organization."
             )

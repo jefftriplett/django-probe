@@ -11,7 +11,7 @@
 {% if projects %}
   {% for project in projects %}
     <section class="panel">
-      <h3><a href="{% url 'project-detail' organization_id=project.organization_id project_id=project.pk %}">{{ project.name }}</a></h3>
+      <h3><a href="{% url 'project-detail' organization_id=project.organization_id project_id=project.pk %}">{{ project.name }}</a> <a class="heading-action" href="{% url 'project-edit' organization_id=project.organization_id project_id=project.pk %}">(rename)</a></h3>
       <p class="item-list__meta">Organization: <a href="{% url 'organization-detail' organization_id=project.organization_id %}">{{ project.organization.name }}</a></p>
       <h4>Submissions</h4>
       {% if project.account_submissions %}

@@ -498,6 +498,54 @@ def project_create(request, organization_id: uuid.UUID) -> HttpResponse:
 
 
 @login_required
+@require_http_methods(["GET", "POST"])
+def project_edit(request, organization_id: uuid.UUID, project_id: int) -> HttpResponse:
+    membership = _membership_or_404(request, organization_id)
+    project = get_object_or_404(
+        Project,
+        pk=project_id,
+        organization=membership.organization,
+    )
+    form = ProjectForm(
+        request.POST or None,
+        instance=project,
+        organization=membership.organization,
+        suggest_name=request.method == "GET" and "suggest" in request.GET,
+    )
+    if request.method == "POST" and form.is_valid():
+        try:
+            with transaction.atomic():
+                form.save()
+        except IntegrityError:
+            if (
+                Project.objects.filter(
+                    organization=membership.organization,
+                    name__iexact=form.cleaned_data["name"],
+                )
+                .exclude(pk=project.pk)
+                .exists()
+            ):
+                form.add_error(
+                    "name",
+                    "A project with this name already exists in this organization.",
+                )
+            else:
+                raise
+        else:
+            messages.success(request, f"Renamed project to {project.name}.")
+            return redirect(
+                "project-detail",
+                organization_id=organization_id,
+                project_id=project.pk,
+            )
+    return render(
+        request,
+        "project_edit.html",
+        {"form": form, "organization": membership.organization, "project": project},
+    )
+
+
+@login_required
 def project_detail(
     request, organization_id: uuid.UUID, project_id: int
 ) -> HttpResponse:
