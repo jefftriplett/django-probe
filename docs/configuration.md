@@ -116,7 +116,7 @@ permissions: {}
 
 jobs:
   django-probe:
-    uses: tim-schilling/django-probe/.github/workflows/django-probe-submit-uv.yml@0.3.2
+    uses: tim-schilling/django-probe/.github/workflows/django-probe-submit-uv.yml@0.4.0
     with:
       environment: django-probe-submit
     secrets:
