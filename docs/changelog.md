@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0
+
 - Bundled the Django 4.2 through the current development version's setting names
   so settings collection no longer requires Django to be installed.
 - Read dependencies from `uv.lock`, `poetry.lock`, or `pdm.lock` when one is present,
@@ -16,6 +18,7 @@
 - Removed the `dependency-groups` input from the reusable uv workflow, which now runs
   `uvx django-probe` and reads every group from `uv.lock`. Drop the input from callers
   when upgrading, since GitHub rejects unknown inputs.
+- Update the schema version to 2 to support `dependencies_source` key.
 
 ## 0.3.2
 
