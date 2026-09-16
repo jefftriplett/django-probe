@@ -8,18 +8,46 @@ By sharing what your project uses, you help support the Django community. No sou
 
 ## Quickstart
 
-Django Probe reports on the environment the project runs in, so run it with the
-project's dependencies installed.
-
-Add Django Probe to the project's development dependencies, then create a project
-token:
+To quickly see what Django Probe would share:
 
 === "uv"
 
     ```console
-    $ uv add --dev django-probe
-    $ uv run django-probe login
-    $ uv run django-probe init
+    $ uvx django-probe scan .
+    ```
+
+=== "pip"
+
+    ```console
+    $ source .venv/bin/activate
+    $ pip install django-probe
+    $ django-probe scan .
+    ```
+
+To share the results, create a project token. If not using uv, you'll need to
+add Django Probe to the development dependencies first:
+
+=== "uv"
+
+    ```console
+    $ uvx django-probe login
+    $ uvx django-probe init
+    ```
+
+=== "Poetry"
+
+    ```console
+    $ poetry add --group dev django-probe
+    $ poetry run django-probe login
+    $ poetry run django-probe init
+    ```
+
+=== "PDM"
+
+    ```console
+    $ pdm add -dG dev django-probe
+    $ pdm run django-probe login
+    $ pdm run django-probe init
     ```
 
 === "pip"
@@ -38,8 +66,24 @@ token:
 
     ```console
     $ export DJANGO_PROBE_TOKEN=<token_from_init>
-    $ uv run django-probe scan .      # inspect the payload; sends nothing
-    $ uv run django-probe submit .    # share the first scan
+    $ uvx django-probe scan .      # inspect the payload; sends nothing
+    $ uvx django-probe submit .    # share the first scan
+    ```
+
+=== "Poetry"
+
+    ```console
+    $ export DJANGO_PROBE_TOKEN=<token_from_init>
+    $ poetry run django-probe scan .      # inspect the payload; sends nothing
+    $ poetry run django-probe submit .    # share the first scan
+    ```
+
+=== "PDM"
+
+    ```console
+    $ export DJANGO_PROBE_TOKEN=<token_from_init>
+    $ pdm run django-probe scan .      # inspect the payload; sends nothing
+    $ pdm run django-probe submit .    # share the first scan
     ```
 
 === "pip"

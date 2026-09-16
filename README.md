@@ -8,17 +8,35 @@ By sharing what your project uses, you help support the Django community. No sou
 
 ## Quickstart
 
-Django Probe reports on the environment the project runs in, so it must run with
-the project's dependencies installed.
-
-Add Django Probe to the project's development dependencies, then create a project
-token:
+To quickly see what Django Probe would share:
 
 ```console
 # with uv
-$ uv add --dev django-probe
-$ uv run django-probe login
-$ uv run django-probe init
+$ uvx django-probe scan .
+
+# with pip
+$ source .venv/bin/activate
+$ pip install django-probe
+$ django-probe scan .
+```
+
+To share the results, create a project token. If not using uv, you'll need to
+add Django Probe to the development dependencies first:
+
+```console
+# with uv
+$ uvx django-probe login
+$ uvx django-probe init
+
+# with Poetry
+$ poetry add --group dev django-probe
+$ poetry run django-probe login
+$ poetry run django-probe init
+
+# with PDM
+$ pdm add -dG dev django-probe
+$ pdm run django-probe login
+$ pdm run django-probe init
 
 # with pip
 $ source .venv/bin/activate
@@ -34,8 +52,16 @@ $ django-probe init
 $ export DJANGO_PROBE_TOKEN=<token_from_init>
 
 # with uv
-$ uv run django-probe scan .      # inspect the payload; sends nothing
-$ uv run django-probe submit .    # share the first scan
+$ uvx django-probe scan .      # inspect the payload; sends nothing
+$ uvx django-probe submit .    # share the first scan
+
+# with Poetry
+$ poetry run django-probe scan .
+$ poetry run django-probe submit .
+
+# with PDM
+$ pdm run django-probe scan .
+$ pdm run django-probe submit .
 
 # with pip
 $ django-probe scan .      # inspect the payload; sends nothing
@@ -67,8 +93,6 @@ jobs:
       path: "."
       # Environment to gate the submit job behind. Empty submits without an approval gate.
       environment: ""
-      # Space-separated uv dependency groups to sync before scanning.
-      dependency-groups: ""
       # Python version for uv to set up. Empty lets uv resolve its own.
       python-version: ""
     secrets:
